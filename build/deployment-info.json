@@ -1,7 +1,7 @@
 {
   "network": "development",
-  "contractAddress": "0x22222B2339aA9Da18a0344Aca91fe695E3E8e16B",
-  "deployedAt": "2025-08-08T10:02:25.957Z",
+  "contractAddress": "0x7bC98d079F020C1B5715287220265259ACE4F1b2",
+  "deployedAt": "2025-09-30T17:28:05.676Z",
   "deployer": "0x534bD8f1d82A75f56c80Be3D8Ab555a82721bA2B",
   "contractABI": [
     {
