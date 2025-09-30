@@ -32023,12 +32023,12 @@
         }
       },
       "links": {},
-      "address": "0x22222B2339aA9Da18a0344Aca91fe695E3E8e16B",
-      "transactionHash": "0x290941ff33b96114af9e0c1ef859ac74ec2b53c211ba76f7457eceac7e79f747"
+      "address": "0x7bC98d079F020C1B5715287220265259ACE4F1b2",
+      "transactionHash": "0x86a318e6c3dc62482c397f1644dbd26a66bf0289b5223f81099534a8d9846ca1"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-08-08T10:02:26.047Z",
+  "updatedAt": "2025-09-30T17:28:05.800Z",
   "networkType": "ethereum",
   "devdoc": {
     "details": "Implements voting process with security features",
