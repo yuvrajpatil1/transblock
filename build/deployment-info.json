@@ -1,8 +1,5 @@
 {
-  "network": "development",
-  "contractAddress": "0x7bC98d079F020C1B5715287220265259ACE4F1b2",
-  "deployedAt": "2025-09-30T17:28:05.676Z",
-  "deployer": "0x534bD8f1d82A75f56c80Be3D8Ab555a82721bA2B",
+  "contractAddress": "0xA4179B9454ca1060178E7AF589105C925d74eF90",
   "contractABI": [
     {
       "inputs": [],
@@ -52,32 +49,6 @@
           "type": "uint256"
         },
         {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "candidateId",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
-        }
-      ],
-      "name": "CandidateStatusChanged",
-      "type": "event",
-      "signature": "0x2bb42803c7cb9ff71286ae87a1693ba570e490a2cc7497a917879f5f1bad03ff"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "electionId",
-          "type": "uint256"
-        },
-        {
           "indexed": false,
           "internalType": "string",
           "name": "name",
@@ -99,34 +70,6 @@
       "name": "ElectionCreated",
       "type": "event",
       "signature": "0xe7a0aae5d733e07e246dea86213a1ac1b0aa8554bde889bb75c12752f44e53d9"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "ElectionEnded",
-      "type": "event",
-      "signature": "0x562cd572b2ba3b666cd989fc4ca98419ec81e75f04528df9d9d76fdb7807ee71"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "uint256",
-          "name": "electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "ElectionStarted",
-      "type": "event",
-      "signature": "0x159eee87222a0489c529f2153c26ad65d718f2cc33ebaa8d399d1dd5b39facaa"
     },
     {
       "anonymous": false,
@@ -175,54 +118,8 @@
       "signature": "0xf45b8429c36d478f9a6d081c4811a819b98aa5b608588bed9d406405cf282473"
     },
     {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "candidates",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "party",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "voteCount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x7de14242"
-    },
-    {
       "inputs": [],
-      "name": "currentElectionId",
+      "name": "electionCount",
       "outputs": [
         {
           "internalType": "uint256",
@@ -233,59 +130,7 @@
       "stateMutability": "view",
       "type": "function",
       "constant": true,
-      "signature": "0x98ecf2a0"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "electionCandidates",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0xa42c56f7"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "electionVoters",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x05f58d6a"
+      "signature": "0x997d2830"
     },
     {
       "inputs": [
@@ -323,14 +168,14 @@
           "type": "uint256"
         },
         {
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
-        },
-        {
           "internalType": "uint256",
           "name": "totalVotes",
           "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "isActive",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -352,62 +197,6 @@
       "type": "function",
       "constant": true,
       "signature": "0x8da5cb5b"
-    },
-    {
-      "inputs": [],
-      "name": "totalElections",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x7fa1ca74"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "voters",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "isRegistered",
-          "type": "bool"
-        },
-        {
-          "internalType": "bool",
-          "name": "hasVoted",
-          "type": "bool"
-        },
-        {
-          "internalType": "uint256",
-          "name": "votedFor",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "registrationTime",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x9e319063"
     },
     {
       "inputs": [
@@ -482,7 +271,7 @@
         },
         {
           "internalType": "address",
-          "name": "_voter",
+          "name": "_voterAddress",
           "type": "address"
         }
       ],
@@ -517,177 +306,18 @@
           "internalType": "uint256",
           "name": "_electionId",
           "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_candidateId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getCandidate",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "party",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "voteCount",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x4bd46448"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "_voter",
-          "type": "address"
-        }
-      ],
-      "name": "getVoter",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "isRegistered",
-          "type": "bool"
-        },
-        {
-          "internalType": "bool",
-          "name": "hasVoted",
-          "type": "bool"
-        },
-        {
-          "internalType": "uint256",
-          "name": "votedFor",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "registrationTime",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x8f47b146"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getElection",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "id",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "description",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "startTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "endTime",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "isActive",
-          "type": "bool"
-        },
-        {
-          "internalType": "uint256",
-          "name": "totalVotes",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x9d710777"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getElectionCandidates",
-      "outputs": [
-        {
-          "internalType": "uint256[]",
-          "name": "",
-          "type": "uint256[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x5e12845e"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
         }
       ],
       "name": "getResults",
       "outputs": [
         {
           "internalType": "uint256[]",
-          "name": "candidateIds",
+          "name": "",
           "type": "uint256[]"
         },
         {
           "internalType": "uint256[]",
-          "name": "voteCounts",
+          "name": "",
           "type": "uint256[]"
         }
       ],
@@ -708,22 +338,22 @@
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "winnerId",
+          "name": "",
           "type": "uint256"
         },
         {
           "internalType": "string",
-          "name": "winnerName",
+          "name": "",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "winnerParty",
+          "name": "",
           "type": "string"
         },
         {
           "internalType": "uint256",
-          "name": "winnerVotes",
+          "name": "",
           "type": "uint256"
         }
       ],
@@ -731,6 +361,93 @@
       "type": "function",
       "constant": true,
       "signature": "0x4129b2c9"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_electionId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_candidateId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getCandidate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true,
+      "signature": "0x4bd46448"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_electionId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "_voterAddress",
+          "type": "address"
+        }
+      ],
+      "name": "getVoter",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true,
+      "signature": "0x8f47b146"
     },
     {
       "inputs": [
@@ -766,114 +483,9 @@
       "stateMutability": "nonpayable",
       "type": "function",
       "signature": "0x9c98bcbb"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_candidateId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "_isActive",
-          "type": "bool"
-        }
-      ],
-      "name": "setCandidateStatus",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function",
-      "signature": "0xdb7d2ece"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getTotalVoters",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x43d3a4c1"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_electionId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getTotalVotes",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true,
-      "signature": "0x2ce35e11"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_newOwner",
-          "type": "address"
-        }
-      ],
-      "name": "transferOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function",
-      "signature": "0xf2fde38b"
-    },
-    {
-      "inputs": [],
-      "name": "emergencyPause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function",
-      "signature": "0x51858e27"
-    },
-    {
-      "inputs": [],
-      "name": "getContractInfo",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "version",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "description",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "pure",
-      "type": "function",
-      "constant": true,
-      "signature": "0x7cc1f867"
     }
-  ]
+  ],
+  "network": "development",
+  "deployedAt": "2025-09-30T20:04:23.075Z",
+  "ownerAccount": "0x534bD8f1d82A75f56c80Be3D8Ab555a82721bA2B"
 }

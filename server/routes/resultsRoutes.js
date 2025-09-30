@@ -2,7 +2,7 @@
 const router = require("express").Router();
 const Election = require("../models/electionModel");
 const Candidate = require("../models/candidateModel");
-const Vote = require("../models/VoteModel");
+const Vote = require("../models/voteModel");
 const authMiddleware = require("../middleware/authMiddleware");
 const { ethers } = require("ethers");
 
