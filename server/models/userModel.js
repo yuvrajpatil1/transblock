@@ -1,262 +1,56 @@
-// // const mongoose = require("mongoose");
-
-// // const UserSchema = new mongoose.Schema(
-// //   {
-// //     firstName: {
-// //       type: String,
-// //       required: true,
-// //     },
-// //     lastName: {
-// //       type: String,
-// //       required: true,
-// //     },
-// //     email: {
-// //       type: String,
-// //       required: true,
-// //     },
-// //     contactNo: {
-// //       type: String,
-// //       required: false,
-// //     },
-// //     identification: {
-// //       type: String,
-// //       required: false,
-// //     },
-// //     identificationNumber: {
-// //       type: String,
-// //       required: true,
-// //     },
-// //     address: {
-// //       type: String,
-// //       required: false,
-// //     },
-// //     walletAddress: {
-// //       type: String,
-// //       required: true,
-// //     },
-// //     password: {
-// //       type: String,
-// //       required: function () {
-// //         return !this.googleId;
-// //       },
-// //     },
-// //     balance: {
-// //       type: Number,
-// //       default: 0,
-// //     },
-// //     isVerified: {
-// //       type: Boolean,
-// //       default: false,
-// //     },
-// //     isAdmin: {
-// //       type: Boolean,
-// //       default: false,
-// //     },
-// //     googleId: {
-// //       type: String,
-// //       sparse: true,
-// //     },
-// //     profilePicture: {
-// //       type: String,
-// //       required: false,
-// //     },
-// //     authProvider: {
-// //       type: String,
-// //       enum: ["local", "google"],
-// //       default: "local",
-// //     },
-// //   },
-// //   {
-// //     timestamps: true,
-// //   }
-// // );
-
-// // UserSchema.pre("save", function (next) {
-// //   if (this.googleId) {
-// //     this.authProvider = "google";
-// //     this.isVerified = true;
-// //   }
-// //   next();
-// // });
-
-// // module.exports = mongoose.model("User", UserSchema);
-
-// const mongoose = require("mongoose");
-// const bcrypt = require("bcryptjs");
-
-// const userSchema = new mongoose.Schema(
-//   {
-//     userId: {
-//       type: String,
-//       required: false,
-//       unique: true,
-//       trim: true,
-//     },
-//     email: {
-//       type: String,
-//       required: true,
-//       unique: true,
-//       lowercase: true,
-//       trim: true,
-//       match: [
-//         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-//         "Please enter a valid email",
-//       ],
-//     },
-//     password: {
-//       type: String,
-//       required: true,
-//       minlength: 6,
-//     },
-//     firstName: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     lastName: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     walletAddress: {
-//       type: String,
-//       unique: true,
-//       sparse: true,
-//       trim: true,
-//     },
-//     hasVoted: {
-//       type: Boolean,
-//       default: false,
-//     },
-//     votedFor: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "Candidate",
-//       default: null,
-//     },
-//     transactionHash: {
-//       type: String,
-//       default: null,
-//     },
-//     isVerified: {
-//       type: Boolean,
-//       default: false,
-//     },
-//     verificationToken: {
-//       type: String,
-//       default: null,
-//     },
-//     role: {
-//       type: String,
-//       enum: ["voter", "admin"],
-//       default: "voter",
-//     },
-//     isActive: {
-//       type: Boolean,
-//       default: true,
-//     },
-//     lastLogin: {
-//       type: Date,
-//       default: null,
-//     },
-//   },
-//   {
-//     timestamps: true,
-//   }
-// );
-
-// // Index for better query performance
-// userSchema.index({ userId: 1 });
-// userSchema.index({ email: 1 });
-// userSchema.index({ walletAddress: 1 });
-
-// // Hash password before saving
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")) return next();
-
-//   try {
-//     const salt = await bcrypt.genSalt(12);
-//     this.password = await bcrypt.hash(this.password, salt);
-//     next();
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
-// // Compare password method
-// userSchema.methods.comparePassword = async function (candidatePassword) {
-//   try {
-//     return await bcrypt.compare(candidatePassword, this.password);
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-
-// // Get full name method
-// userSchema.methods.getFullName = function () {
-//   return `${this.firstName} ${this.lastName}`;
-// };
-
-// // Remove sensitive data when converting to JSON
-// userSchema.methods.toJSON = function () {
-//   const user = this.toObject();
-//   delete user.password;
-//   delete user.verificationToken;
-//   return user;
-// };
-
-// // Static method to find user by credentials
-// userSchema.statics.findByCredentials = async function (email, password) {
-//   const user = await this.findOne({ email, isActive: true });
-//   if (!user) {
-//     throw new Error("Invalid login credentials");
-//   }
-
-//   const isMatch = await user.comparePassword(password);
-//   if (!isMatch) {
-//     throw new Error("Invalid login credentials");
-//   }
-
-//   return user;
-// };
-
-// module.exports = mongoose.model("User", userSchema);
-
-// server/models/userModel.js
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+      required: [true, "First name is required"],
       trim: true,
+      minlength: [2, "First name must be at least 2 characters"],
+      maxlength: [50, "First name cannot exceed 50 characters"],
     },
     lastName: {
       type: String,
-      required: true,
+      required: [true, "Last name is required"],
       trim: true,
+      minlength: [2, "Last name must be at least 2 characters"],
+      maxlength: [50, "Last name cannot exceed 50 characters"],
     },
     email: {
       type: String,
-      required: true,
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email"],
     },
     password: {
       type: String,
       required: function () {
         return this.authProvider === "local";
       },
+      minlength: [6, "Password must be at least 6 characters"],
+      select: false,
     },
     walletAddress: {
       type: String,
       unique: true,
       sparse: true,
+      uppercase: true,
+      validate: {
+        validator: function (v) {
+          return !v || /^0x[a-fA-F0-9]{40}$/.test(v);
+        },
+        message: "Invalid Ethereum wallet address",
+      },
     },
     role: {
       type: String,
-      enum: ["voter", "admin"],
+      enum: {
+        values: ["voter", "candidate", "admin"],
+        message: "{VALUE} is not a valid role",
+      },
       default: "voter",
     },
     authProvider: {
@@ -272,30 +66,39 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    hasVoted: {
-      type: Boolean,
-      default: false,
-    },
-    votedFor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "candidates",
-      default: null,
-    },
     votedInElections: [
       {
         electionId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "elections",
+          ref: "Election",
         },
-        votedAt: Date,
+        candidateId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Candidate",
+        },
+        votedAt: {
+          type: Date,
+          default: Date.now,
+        },
         transactionHash: String,
+        blockNumber: Number,
       },
     ],
     phoneNumber: {
       type: String,
       trim: true,
+      match: [/^\+?[\d\s-()]+$/, "Please enter a valid phone number"],
     },
-    dateOfBirth: Date,
+    dateOfBirth: {
+      type: Date,
+      validate: {
+        validator: function (v) {
+          const age = (Date.now() - v) / (365.25 * 24 * 60 * 60 * 1000);
+          return age >= 18;
+        },
+        message: "User must be at least 18 years old",
+      },
+    },
     address: {
       street: String,
       city: String,
@@ -304,16 +107,78 @@ const userSchema = new mongoose.Schema(
       country: String,
     },
     verificationToken: String,
+    verificationTokenExpiry: Date,
+    passwordResetToken: String,
+    passwordResetExpiry: Date,
     lastLogin: Date,
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: Date,
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-// Index for faster queries
+// Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ walletAddress: 1 });
-userSchema.index({ isVerified: 1, isActive: 1 });
+userSchema.index({ role: 1, isVerified: 1, isActive: 1 });
 
-module.exports = mongoose.model("users", userSchema);
+// Virtual for checking if user has voted in specific election
+userSchema.virtual("hasVotedInElection").get(function () {
+  return (electionId) => {
+    return this.votedInElections.some(
+      (vote) => vote.electionId.toString() === electionId.toString()
+    );
+  };
+});
+
+// Pre-save hook to hash password
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  try {
+    const salt = await bcrypt.genSalt(12);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to check if account is locked
+userSchema.methods.isLocked = function () {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+};
+
+// Method to increment login attempts
+userSchema.methods.incLoginAttempts = function () {
+  if (this.lockUntil && this.lockUntil < Date.now()) {
+    return this.updateOne({
+      $set: { loginAttempts: 1 },
+      $unset: { lockUntil: 1 },
+    });
+  }
+
+  const updates = { $inc: { loginAttempts: 1 } };
+  const maxAttempts = 5;
+  const lockTime = 2 * 60 * 60 * 1000; // 2 hours
+
+  if (this.loginAttempts + 1 >= maxAttempts && !this.isLocked()) {
+    updates.$set = { lockUntil: Date.now() + lockTime };
+  }
+
+  return this.updateOne(updates);
+};
+
+module.exports = mongoose.model("User", userSchema);

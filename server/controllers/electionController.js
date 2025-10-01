@@ -1,45 +1,19 @@
 // server/controllers/electionController.js
 const Election = require("../models/electionModel");
 const Candidate = require("../models/candidateModel");
-const User = require("../models/userModel");
 const Vote = require("../models/voteModel");
 const blockchainService = require("../services/blockchainService");
+const mongoose = require("mongoose");
 
-// Create new election
 exports.createElection = async (req, res) => {
   try {
     const { title, description, startDate, endDate, electionType } = req.body;
 
-    // Validation
-    if (!title || !description || !startDate || !endDate) {
-      return res.status(400).json({
-        success: false,
-        message: "All required fields must be provided",
-      });
-    }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    if (start >= end) {
-      return res.status(400).json({
-        success: false,
-        message: "End date must be after start date",
-      });
-    }
-
-    if (start < new Date()) {
-      return res.status(400).json({
-        success: false,
-        message: "Start date cannot be in the past",
-      });
-    }
-
     const election = new Election({
       title,
       description,
-      startDate: start,
-      endDate: end,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       electionType: electionType || "general",
       createdBy: req.userId,
       status: "upcoming",
@@ -47,18 +21,19 @@ exports.createElection = async (req, res) => {
 
     await election.save();
 
-    // Optionally create on blockchain
+    // Create on blockchain
     try {
-      const blockchainResult = await blockchainService.createBlockchainElection(
+      const blockchainResult = await blockchainService.createElection(
         title,
         description,
-        Math.floor(start.getTime() / 1000),
-        Math.floor(end.getTime() / 1000)
+        Math.floor(new Date(startDate).getTime() / 1000),
+        Math.floor(new Date(endDate).getTime() / 1000)
       );
+
       election.blockchainElectionId = blockchainResult.electionId;
       await election.save();
     } catch (blockchainError) {
-      console.error("Blockchain creation failed:", blockchainError);
+      console.error("Blockchain election creation failed:", blockchainError);
     }
 
     res.status(201).json({
@@ -67,30 +42,27 @@ exports.createElection = async (req, res) => {
       data: election,
     });
   } catch (error) {
-    console.error("Create election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error creating election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Get all elections
 exports.getAllElections = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    const { page = 1, limit = 10, status, type } = req.query;
 
     let filter = {};
     if (status) filter.status = status;
+    if (type) filter.electionType = type;
 
     const elections = await Election.find(filter)
-      .populate("candidates", "firstName lastName party profileImage")
+      .populate("candidates", "firstName lastName party profileImage votes")
       .populate("createdBy", "firstName lastName email")
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .lean();
+      .skip((page - 1) * limit);
 
     const total = await Election.countDocuments(filter);
 
@@ -104,24 +76,19 @@ exports.getAllElections = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get all elections error:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching elections",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Get election by ID
 exports.getElectionById = async (req, res) => {
   try {
-    const { electionId } = req.params;
-
-    const election = await Election.findById(electionId)
+    const election = await Election.findById(req.params.id)
       .populate("candidates")
-      .populate("createdBy", "firstName lastName email")
-      .lean();
+      .populate("winner")
+      .populate("createdBy", "firstName lastName email");
 
     if (!election) {
       return res.status(404).json({
@@ -130,68 +97,46 @@ exports.getElectionById = async (req, res) => {
       });
     }
 
-    // Get vote count
-    const voteCount = await Vote.countDocuments({ electionId });
-    election.currentVoteCount = voteCount;
-
     res.json({
       success: true,
       data: election,
     });
   } catch (error) {
-    console.error("Get election by ID error:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Update election
-exports.updateElection = async (req, res) => {
+exports.getActiveElections = async (req, res) => {
   try {
-    const { electionId } = req.params;
-    const updates = req.body;
+    const now = new Date();
 
-    // Don't allow updating certain fields
-    delete updates.blockchainElectionId;
-    delete updates.createdBy;
-    delete updates.totalVotes;
-
-    const election = await Election.findByIdAndUpdate(electionId, updates, {
-      new: true,
-      runValidators: true,
+    const elections = await Election.find({
+      status: "active",
+      startDate: { $lte: now },
+      endDate: { $gte: now },
+    }).populate({
+      path: "candidates",
+      match: { isVerified: true, isActive: true },
     });
-
-    if (!election) {
-      return res.status(404).json({
-        success: false,
-        message: "Election not found",
-      });
-    }
 
     res.json({
       success: true,
-      message: "Election updated successfully",
-      data: election,
+      data: elections,
     });
   } catch (error) {
-    console.error("Update election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Start election
 exports.startElection = async (req, res) => {
   try {
-    const { electionId } = req.params;
-
-    const election = await Election.findById(electionId);
+    const election = await Election.findById(req.params.id);
 
     if (!election) {
       return res.status(404).json({
@@ -203,7 +148,7 @@ exports.startElection = async (req, res) => {
     if (election.status !== "upcoming") {
       return res.status(400).json({
         success: false,
-        message: "Election cannot be started",
+        message: "Only upcoming elections can be started",
       });
     }
 
@@ -217,21 +162,16 @@ exports.startElection = async (req, res) => {
       data: election,
     });
   } catch (error) {
-    console.error("Start election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error starting election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Stop election
 exports.stopElection = async (req, res) => {
   try {
-    const { electionId } = req.params;
-
-    const election = await Election.findById(electionId);
+    const election = await Election.findById(req.params.id);
 
     if (!election) {
       return res.status(404).json({
@@ -257,23 +197,17 @@ exports.stopElection = async (req, res) => {
       data: election,
     });
   } catch (error) {
-    console.error("Stop election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error stopping election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Add candidate to election
-exports.addCandidateToElection = async (req, res) => {
+exports.addCandidate = async (req, res) => {
   try {
-    const { electionId } = req.params;
     const { candidateId } = req.body;
-
-    const election = await Election.findById(electionId);
-    const candidate = await Candidate.findById(candidateId);
+    const election = await Election.findById(req.params.id);
 
     if (!election) {
       return res.status(404).json({
@@ -282,6 +216,7 @@ exports.addCandidateToElection = async (req, res) => {
       });
     }
 
+    const candidate = await Candidate.findById(candidateId);
     if (!candidate) {
       return res.status(404).json({
         success: false,
@@ -299,38 +234,35 @@ exports.addCandidateToElection = async (req, res) => {
     if (election.candidates.includes(candidateId)) {
       return res.status(400).json({
         success: false,
-        message: "Candidate already added to this election",
+        message: "Candidate already added",
       });
     }
 
     election.candidates.push(candidateId);
     await election.save();
 
-    candidate.electionId = electionId;
+    candidate.electionId = election._id;
     await candidate.save();
 
     res.json({
       success: true,
-      message: "Candidate added to election successfully",
+      message: "Candidate added successfully",
       data: election,
     });
   } catch (error) {
-    console.error("Add candidate to election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error adding candidate to election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Remove candidate from election
-exports.removeCandidateFromElection = async (req, res) => {
+exports.removeCandidate = async (req, res) => {
   try {
-    const { electionId, candidateId } = req.params;
+    const { id, candidateId } = req.params;
 
     const election = await Election.findByIdAndUpdate(
-      electionId,
+      id,
       { $pull: { candidates: candidateId } },
       { new: true }
     );
@@ -342,27 +274,23 @@ exports.removeCandidateFromElection = async (req, res) => {
       });
     }
 
+    await Candidate.findByIdAndUpdate(candidateId, { electionId: null });
+
     res.json({
       success: true,
-      message: "Candidate removed from election successfully",
-      data: election,
+      message: "Candidate removed successfully",
     });
   } catch (error) {
-    console.error("Remove candidate from election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error removing candidate from election",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Declare election results
 exports.declareResults = async (req, res) => {
   try {
-    const { electionId } = req.params;
-
-    const election = await Election.findById(electionId);
+    const election = await Election.findById(req.params.id);
 
     if (!election) {
       return res.status(404).json({
@@ -374,11 +302,11 @@ exports.declareResults = async (req, res) => {
     if (election.status !== "completed") {
       return res.status(400).json({
         success: false,
-        message: "Results can only be declared for completed elections",
+        message: "Only completed elections can have results declared",
       });
     }
 
-    // Calculate winner
+    // Get winner
     const results = await Vote.aggregate([
       { $match: { electionId: election._id } },
       {
@@ -414,21 +342,96 @@ exports.declareResults = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Declare results error:", error);
     res.status(500).json({
       success: false,
-      message: "Error declaring results",
-      error: error.message,
+      message: error.message,
     });
   }
 };
 
-// Delete election
+exports.getElectionResults = async (req, res) => {
+  try {
+    const election = await Election.findById(req.params.id).populate(
+      "candidates"
+    );
+
+    if (!election) {
+      return res.status(404).json({
+        success: false,
+        message: "Election not found",
+      });
+    }
+
+    const results = await Vote.aggregate([
+      { $match: { electionId: election._id } },
+      {
+        $group: {
+          _id: "$candidateId",
+          voteCount: { $sum: 1 },
+        },
+      },
+      {
+        $lookup: {
+          from: "candidates",
+          localField: "_id",
+          foreignField: "_id",
+          as: "candidate",
+        },
+      },
+      { $unwind: "$candidate" },
+      { $sort: { voteCount: -1 } },
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        election,
+        results,
+        totalVotes: election.totalVotes,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.updateElection = async (req, res) => {
+  try {
+    const updates = req.body;
+    delete updates.createdBy;
+    delete updates.blockchainElectionId;
+
+    const election = await Election.findByIdAndUpdate(req.params.id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!election) {
+      return res.status(404).json({
+        success: false,
+        message: "Election not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Election updated successfully",
+      data: election,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 exports.deleteElection = async (req, res) => {
   try {
-    const { electionId } = req.params;
-
-    const election = await Election.findById(electionId);
+    const election = await Election.findById(req.params.id);
 
     if (!election) {
       return res.status(404).json({
@@ -444,50 +447,16 @@ exports.deleteElection = async (req, res) => {
       });
     }
 
-    await Election.findByIdAndDelete(electionId);
+    await Election.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
       message: "Election deleted successfully",
     });
   } catch (error) {
-    console.error("Delete election error:", error);
     res.status(500).json({
       success: false,
-      message: "Error deleting election",
-      error: error.message,
-    });
-  }
-};
-
-// Get active elections for voting
-exports.getActiveElections = async (req, res) => {
-  try {
-    const now = new Date();
-
-    const activeElections = await Election.find({
-      status: "active",
-      startDate: { $lte: now },
-      endDate: { $gte: now },
-    })
-      .populate({
-        path: "candidates",
-        match: { isVerified: true, isActive: true },
-        select:
-          "firstName lastName party position biography profileImage votes",
-      })
-      .lean();
-
-    res.json({
-      success: true,
-      data: activeElections,
-    });
-  } catch (error) {
-    console.error("Get active elections error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error fetching active elections",
-      error: error.message,
+      message: error.message,
     });
   }
 };

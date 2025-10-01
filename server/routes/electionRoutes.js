@@ -1,54 +1,41 @@
 // server/routes/electionRoutes.js
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
+const { authMiddleware, requireRole } = require("../middleware/authMiddleware");
 const electionController = require("../controllers/electionController");
-const votingController = require("../controllers/votingController");
-const authMiddleware = require("../middleware/authMiddleware");
-const adminMiddleware = require("../middleware/adminMiddleware");
 
 // Public routes
+router.get("/", electionController.getAllElections);
 router.get("/active", electionController.getActiveElections);
-router.get("/all", electionController.getAllElections);
-router.get("/:electionId", electionController.getElectionById);
+router.get("/:id", electionController.getElectionById);
+router.get("/:id/results", electionController.getElectionResults);
 
-// Protected routes (all users)
+// Protected routes
 router.use(authMiddleware);
-router.post("/vote", votingController.castVote);
-router.post("/verify-vote", votingController.verifyVote);
-router.get("/my/voting-history", votingController.getVotingHistory);
 
 // Admin only routes
-router.post("/create", adminMiddleware, electionController.createElection);
-router.put("/:electionId", adminMiddleware, electionController.updateElection);
+router.post("/", requireRole("admin"), electionController.createElection);
+router.put("/:id", requireRole("admin"), electionController.updateElection);
 router.post(
-  "/:electionId/start",
-  adminMiddleware,
+  "/:id/start",
+  requireRole("admin"),
   electionController.startElection
 );
+router.post("/:id/stop", requireRole("admin"), electionController.stopElection);
 router.post(
-  "/:electionId/stop",
-  adminMiddleware,
-  electionController.stopElection
-);
-router.post(
-  "/:electionId/declare-results",
-  adminMiddleware,
+  "/:id/declare-results",
+  requireRole("admin"),
   electionController.declareResults
 );
+router.delete("/:id", requireRole("admin"), electionController.deleteElection);
 router.post(
-  "/:electionId/add-candidate",
-  adminMiddleware,
-  electionController.addCandidateToElection
+  "/:id/add-candidate",
+  requireRole("admin"),
+  electionController.addCandidate
 );
 router.delete(
-  "/:electionId/candidate/:candidateId",
-  adminMiddleware,
-  electionController.removeCandidateFromElection
-);
-router.delete(
-  "/:electionId",
-  adminMiddleware,
-  electionController.deleteElection
+  "/:id/candidate/:candidateId",
+  requireRole("admin"),
+  electionController.removeCandidate
 );
 
 module.exports = router;

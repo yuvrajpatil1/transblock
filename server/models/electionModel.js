@@ -1,100 +1,38 @@
-// const mongoose = require("mongoose");
-
-// const electionSchema = new mongoose.Schema(
-//   {
-//     title: {
-//       type: String,
-//       required: true,
-//       trim: true,
-//     },
-//     description: {
-//       type: String,
-//       required: true,
-//     },
-//     startDate: {
-//       type: Date,
-//       required: true,
-//     },
-//     endDate: {
-//       type: Date,
-//       required: true,
-//     },
-//     isActive: {
-//       type: Boolean,
-//       default: true,
-//     },
-//     status: {
-//       type: String,
-//       enum: ["upcoming", "active", "completed", "cancelled"],
-//       default: "upcoming",
-//     },
-//     candidates: [
-//       {
-//         type: mongoose.Schema.Types.ObjectId,
-//         ref: "Candidate",
-//       },
-//     ],
-//     totalVotes: {
-//       type: Number,
-//       default: 0,
-//     },
-//     settings: {
-//       allowMultipleVotes: {
-//         type: Boolean,
-//         default: false,
-//       },
-//       requireVerification: {
-//         type: Boolean,
-//         default: true,
-//       },
-//       publicResults: {
-//         type: Boolean,
-//         default: true,
-//       },
-//     },
-//   },
-//   {
-//     timestamps: true,
-//   }
-// );
-
-// // Add methods
-// electionSchema.methods.isOngoing = function () {
-//   const now = new Date();
-//   return this.startDate <= now && now <= this.endDate && this.isActive;
-// };
-
-// electionSchema.methods.hasEnded = function () {
-//   return new Date() > this.endDate;
-// };
-
-// electionSchema.methods.hasStarted = function () {
-//   return new Date() >= this.startDate;
-// };
-
-// module.exports = mongoose.model("Election", electionSchema);
-
 // server/models/electionModel.js
-const mongoose = require("mongoose");
-
 const electionSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, "Election title is required"],
       trim: true,
+      minlength: [5, "Title must be at least 5 characters"],
+      maxlength: [200, "Title cannot exceed 200 characters"],
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Election description is required"],
+      minlength: [20, "Description must be at least 20 characters"],
+      maxlength: [2000, "Description cannot exceed 2000 characters"],
     },
     startDate: {
       type: Date,
-      required: true,
+      required: [true, "Start date is required"],
+      validate: {
+        validator: function (v) {
+          return this.isNew ? v > Date.now() : true;
+        },
+        message: "Start date must be in the future",
+      },
     },
     endDate: {
       type: Date,
-      required: true,
+      required: [true, "End date is required"],
+      validate: {
+        validator: function (v) {
+          return v > this.startDate;
+        },
+        message: "End date must be after start date",
+      },
     },
     status: {
       type: String,
@@ -103,29 +41,29 @@ const electionSchema = new mongoose.Schema(
     },
     electionType: {
       type: String,
-      enum: ["general", "local", "special"],
+      enum: ["general", "local", "special", "primary"],
       default: "general",
     },
     candidates: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "candidates",
+        ref: "Candidate",
       },
     ],
-    voters: [
+    eligibleVoters: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "users",
+        ref: "User",
       },
     ],
     totalVotes: {
       type: Number,
       default: 0,
+      min: 0,
     },
-    blockchainElectionId: Number,
-    blockchainNetwork: {
-      type: String,
-      default: "Ethereum",
+    blockchainElectionId: {
+      type: Number,
+      default: null,
     },
     isResultsDeclared: {
       type: Boolean,
@@ -133,12 +71,19 @@ const electionSchema = new mongoose.Schema(
     },
     winner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "candidates",
+      ref: "Candidate",
+      default: null,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "users",
+      ref: "User",
       required: true,
+    },
+    settings: {
+      allowPublicResults: { type: Boolean, default: false },
+      allowLiveResults: { type: Boolean, default: false },
+      requireVerification: { type: Boolean, default: true },
+      maxVotesPerVoter: { type: Number, default: 1 },
     },
   },
   {
@@ -146,15 +91,27 @@ const electionSchema = new mongoose.Schema(
   }
 );
 
-// Validate dates
+// Auto-update status based on dates
 electionSchema.pre("save", function (next) {
-  if (this.startDate >= this.endDate) {
-    next(new Error("End date must be after start date"));
+  const now = new Date();
+
+  if (this.status === "cancelled") {
+    return next();
   }
+
+  if (now < this.startDate) {
+    this.status = "upcoming";
+  } else if (now >= this.startDate && now <= this.endDate) {
+    this.status = "active";
+  } else if (now > this.endDate) {
+    this.status = "completed";
+  }
+
   next();
 });
 
 electionSchema.index({ status: 1 });
 electionSchema.index({ startDate: 1, endDate: 1 });
+electionSchema.index({ createdBy: 1 });
 
-module.exports = mongoose.model("elections", electionSchema);
+module.exports = mongoose.model("Election", electionSchema);
